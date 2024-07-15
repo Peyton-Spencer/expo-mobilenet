@@ -1,5 +1,5 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { Image, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, View, Text, } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
