@@ -17,7 +17,7 @@ import * as cocossd from '@tensorflow-models/coco-ssd';
 export default function HomeScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
-  const [result, setResult] = useState<string[]>([]);
+  const [predictions, setResult] = useState<string[]>([]);
   const [imageUri, setImageUri] = useState('');
   const image = useRef<Image>(null);
   const camViewRef = useRef<CameraView>(null);
@@ -87,6 +87,9 @@ export default function HomeScreen() {
       if (prediction && prediction.length > 0) {
         console.log('got prediction', prediction);
         setResult(prediction.map(p => `${p.class}: ${formatBoundingBox(p.bbox)}: (${p.score.toFixed(3)})`));
+      } else {
+        console.log('No prediction');
+        setResult([]);
       }
     } catch (err) {
       console.log(err);
@@ -177,14 +180,17 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </ThemedView>}
 
-        {result.length > 0 && (
+        {predictions.length > 0 && (
           <>
-            {result.map((prediction, index) => (
+            {predictions.map((prediction, index) => (
               <ThemedText key={index} type="subtitle">
                 {prediction}
               </ThemedText>
             ))}
           </>
+        )}
+        {predictions.length === 0 && (
+          <ThemedText type="subtitle">No objects detected</ThemedText>
         )}
 
       </ThemedView>
