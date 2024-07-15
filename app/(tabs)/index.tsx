@@ -10,9 +10,9 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import * as tf from '@tensorflow/tfjs';
 import { decodeJpeg } from '@tensorflow/tfjs-react-native';
-import * as mobilenet from '@tensorflow-models/mobilenet';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { TouchableOpacity } from 'react-native';
+import * as cocossd from '@tensorflow-models/coco-ssd';
 
 export default function HomeScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -21,21 +21,20 @@ export default function HomeScreen() {
   const [imageUri, setImageUri] = useState('');
   const image = useRef<Image>(null);
   const camViewRef = useRef<CameraView>(null);
-  const [model, setModel] = useState<mobilenet.MobileNet | null>(null);
+  const [model, setModel] = useState<cocossd.ObjectDetection | null>(null);
   const [tfState, setTfState] = useState('');
 
-  const load = async () => {
+  const loadModel = async () => {
     try {
-      // Load mobilenet.
       console.log('Loading TFJS model...');
       setTfState('Loading TFJS model...');
       await tf.ready();
       console.log('TFJS ready');
       setTfState('TFJS ready!');
-      const model = await mobilenet.load({ version: 2, alpha: 1.0 });
-      console.log('Mobilenet loaded');
+      const model = await cocossd.load();
+      console.log('CocoSSD loaded');
       setModel(model);
-      setTfState('Mobilenet ready!');
+      setTfState('CocoSSD ready!');
 
     } catch (err) {
       console.log(err);
@@ -76,12 +75,12 @@ export default function HomeScreen() {
         return;
       }
 
-      const prediction = await model.classify(imageTensor);
+      const prediction = await model.detect(imageTensor);
       console.log('Prediction');
 
       if (prediction && prediction.length > 0) {
         console.log('got prediction', prediction);
-        setResult(prediction.map(p => `${p.className} (${p.probability.toFixed(3)})`));
+        setResult(prediction.map(p => `${p.class}: ${formatBoundingBox(p.bbox)}: (${p.score.toFixed(3)})`));
       }
     } catch (err) {
       console.log(err);
@@ -89,7 +88,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    load();
+    loadModel();
   }, []);
 
   if (!permission) {
@@ -229,3 +228,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 });
+
+function formatBoundingBox(box: number[]) {
+  return `(${box[0].toFixed(2)}, ${box[1].toFixed(2)}) - (${box[2].toFixed(2)}, ${box[3].toFixed(2)})`;
+}
