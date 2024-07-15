@@ -32,7 +32,7 @@ export default function HomeScreen() {
       await tf.ready();
       console.log('TFJS ready');
       setTfState('TFJS ready!');
-      const model = await mobilenet.load();
+      const model = await mobilenet.load({ version: 2, alpha: 1.0 });
       console.log('Mobilenet loaded');
       setModel(model);
       setTfState('Mobilenet ready!');
