@@ -75,7 +75,13 @@ export default function HomeScreen() {
         return;
       }
 
+      // This warning suppression was included in tfjs-models/blazeface,src/face.ts
+      // TODO: Once tf.image.nonMaxSuppression includes a flag to suppress console
+      // warnings for not using async version, pass that flag in.
+      const savedConsoleWarnFn = console.warn;
+      console.warn = () => { };
       const prediction = await model.detect(imageTensor);
+      console.warn = savedConsoleWarnFn;
       console.log('Prediction');
 
       if (prediction && prediction.length > 0) {
